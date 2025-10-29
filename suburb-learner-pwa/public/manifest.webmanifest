@@ -1,0 +1,19 @@
+{
+  "name": "SuburbLearner Web",
+  "short_name": "SuburbLearner",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1b2b",
+  "theme_color": "#0b1b2b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+

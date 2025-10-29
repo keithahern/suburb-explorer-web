@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Sandymount", "id": "sandymount", "admin_level": 10 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-6.221, 53.323], [-6.205, 53.323], [-6.205, 53.333], [-6.221, 53.333], [-6.221, 53.323]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Irishtown", "id": "irishtown", "admin_level": 10 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-6.235, 53.332], [-6.221, 53.332], [-6.221, 53.343], [-6.235, 53.343], [-6.235, 53.332]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ringsend", "id": "ringsend", "admin_level": 10 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-6.238, 53.336], [-6.225, 53.336], [-6.225, 53.348], [-6.238, 53.348], [-6.238, 53.336]
+        ]]
+      }
+    }
+  ]
+}
+
+
