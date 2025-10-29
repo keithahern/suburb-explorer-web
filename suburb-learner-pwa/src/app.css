@@ -28,6 +28,7 @@ body {
   right: 0;
   z-index: 10;
   padding: 12px 16px 8px;
+  padding-right: 112px; /* reserve space for compass at top-right */
   display: grid;
   gap: 6px;
   pointer-events: none;
@@ -52,6 +53,19 @@ body {
   font-size: 14px;
   color: var(--muted);
   display: none; /* hidden until a road name is set */
+}
+.banner .road:empty { display: none; }
+
+/* Unify control styling: semi-transparent, rounded */
+#map .maplibregl-ctrl-group {
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+}
+#map .maplibregl-ctrl-group button {
+  background-color: transparent;
+  filter: invert(1) brightness(1.1);
 }
 
 .pill {
@@ -87,18 +101,20 @@ body {
 
 .toggles {
   position: absolute;
-  bottom: 16px;
+  bottom: 64px; /* sit above OSM/MapLibre attribution */
   right: 16px;
   display: flex;
   gap: 8px;
 }
 
 .toggles button {
-  background: rgba(255,255,255,0.1);
+  width: 56px;
+  height: 56px;
+  background: rgba(0,0,0,0.35);
   color: var(--fg);
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 10px;
-  padding: 8px 10px;
+  border-radius: 12px;
+  padding: 0;
 }
 
 /* Larger zoom controls for bike use */
