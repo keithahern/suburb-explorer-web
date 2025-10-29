@@ -26,13 +26,28 @@ body {
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0; /* fill viewport so directional labels can center */
   z-index: 10;
   padding: 12px 16px 8px;
   padding-right: 112px; /* reserve space for compass at top-right */
-  display: grid;
-  gap: 6px;
+  display: block;
   pointer-events: none;
 }
+
+.dir {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--fg);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.dir-top { top: 8px; left: 50%; transform: translateX(-50%); font-weight: 600; }
+.dir-bottom { bottom: 80px; left: 50%; transform: translateX(-50%); }
+.dir-left { top: 50%; left: 8px; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: mixed; }
+.dir-right { top: 50%; right: 8px; transform: translateY(-50%); writing-mode: vertical-rl; text-orientation: mixed; }
 
 .banner {
   background: rgba(0,0,0,0.35);
@@ -40,15 +55,16 @@ body {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 12px;
   padding: 10px 12px;
-  display: flex;
+  display: inline-flex; /* shrink to content */
   align-items: center;
   gap: 12px;
+  max-width: min(92vw, 680px);
+  position: absolute;
+  top: 44px; /* sit just below the top directional label */
+  left: 16px;
 }
 
-.banner .suburb {
-  font-size: 22px;
-  font-weight: 700;
-}
+.banner .suburb { font-size: 22px; font-weight: 800; }
 .banner .road {
   font-size: 14px;
   color: var(--muted);
@@ -126,5 +142,6 @@ body {
   box-shadow: 0 2px 10px rgba(0,0,0,0.35);
   border-radius: 12px;
 }
+
 
 

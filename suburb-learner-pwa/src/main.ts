@@ -44,6 +44,7 @@ worker.addEventListener('message', (e) => {
   if (m.type === 'loc-result') {
     hud.setSuburb(m.suburbName || '—');
     hud.setApproach(m.nextName, m.nextDistanceM);
+    if (m.nextDirs) hud.setNextDirs(m.nextDirs);
   }
 });
 

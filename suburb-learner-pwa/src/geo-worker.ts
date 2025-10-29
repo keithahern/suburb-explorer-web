@@ -30,21 +30,20 @@ ctx.addEventListener('message', (e) => {
     ctx.postMessage({ type: 'ready' });
   }
   if (msg.type === 'loc-update') {
-    const { coord, heading } = msg;
-    const candidates = tree.search({ minX: coord.lng, minY: coord.lat, maxX: coord.lng, maxY: coord.lat });
-    let suburbName: string | null = null;
-    for (const c of candidates) {
-      const feat = features[c.idx];
-      if (booleanPointInPolygon([coord.lng, coord.lat], feat as any)) {
-        suburbName = feat.properties.name;
-        break;
-      }
-    }
-    // Simple hysteresis: require change only if different and we are not undecided
-    if (suburbName && suburbName !== lastSuburb) lastSuburb = suburbName;
+    const { coord, heading } = msg as { coord: {lng:number;lat:number}; heading?: number };
+    const hereSuburb = getSuburbAt(coord.lng, coord.lat);
+    if (hereSuburb) lastSuburb = hereSuburb;
 
-    // Approaching distance stub: not implementing heavy sampling in this lean demo
-    ctx.postMessage({ type: 'loc-result', suburbName: lastSuburb, nextName: null, nextDistanceM: null, heading });
+    const h = (typeof heading === 'number' && !Number.isNaN(heading)) ? heading : 0;
+    const norm = (a: number) => (a % 360 + 360) % 360;
+    const next = {
+      top: castUntilChange(coord, norm(h)),
+      bottom: castUntilChange(coord, norm(h + 180)),
+      left: castUntilChange(coord, norm(h - 90)),
+      right: castUntilChange(coord, norm(h + 90)),
+    } as const;
+
+    ctx.postMessage({ type: 'loc-result', suburbName: lastSuburb, nextDirs: next });
   }
 });
 
@@ -63,6 +62,36 @@ function computeBBox(f: PolygonFeature): [number, number, number, number] {
   if (f.geometry.type === 'Polygon') iterate(f.geometry.coordinates);
   else for (const poly of f.geometry.coordinates) iterate(poly);
   return [minX, minY, maxX, maxY];
+}
+
+function getSuburbAt(lng: number, lat: number): string | null {
+  const candidates = tree.search({ minX: lng, minY: lat, maxX: lng, maxY: lat });
+  for (const c of candidates) {
+    const feat = features[c.idx];
+    if (booleanPointInPolygon([lng, lat], feat as any)) return feat.properties.name;
+  }
+  return null;
+}
+
+function castUntilChange(coord: {lng:number;lat:number}, bearingDeg: number): { name: string|null; distM: number|null } {
+  const startName = getSuburbAt(coord.lng, coord.lat);
+  const stepM = 50;
+  const maxM = 3000;
+  let traveled = 0;
+  const rad = (bearingDeg * Math.PI) / 180;
+  const cosLat = Math.cos((coord.lat * Math.PI) / 180);
+  const dLngPerM = 1 / (111320 * cosLat);
+  const dLatPerM = 1 / 110540;
+  let lng = coord.lng;
+  let lat = coord.lat;
+  while (traveled <= maxM) {
+    lng += Math.sin(rad) * stepM * dLngPerM;
+    lat += Math.cos(rad) * stepM * dLatPerM;
+    traveled += stepM;
+    const name = getSuburbAt(lng, lat);
+    if (name && name !== startName) return { name, distM: traveled };
+  }
+  return { name: null, distM: null };
 }
 
 

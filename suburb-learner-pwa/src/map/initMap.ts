@@ -54,6 +54,10 @@ export function initMap(container: HTMLElement) {
 
   function updateHeading(heading: number) {
     lastHeading = heading;
+    try {
+      // Rotate map to match device heading (0° = north)
+      (map as any).easeTo?.({ bearing: heading, duration: 300, essential: true });
+    } catch {}
     updateRay();
   }
 
