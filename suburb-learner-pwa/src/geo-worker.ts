@@ -70,6 +70,18 @@ function getSuburbAt(lng: number, lat: number): string | null {
     const feat = features[c.idx];
     if (booleanPointInPolygon([lng, lat], feat as any)) return feat.properties.name;
   }
+  // Fallback: snap to nearest suburb within 200 m
+  let bestName: string | null = null;
+  let bestDist = Infinity;
+  for (const c of candidates.length ? candidates : tree.all()) {
+    const feat = features[c.idx];
+    const dist = distanceToBBoxMeters({ lng, lat }, feat.bbox ?? computeBBox(feat));
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestName = feat.properties.name;
+    }
+  }
+  if (bestDist <= 200) return bestName;
   return null;
 }
 
