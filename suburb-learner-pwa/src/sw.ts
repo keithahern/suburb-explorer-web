@@ -1,11 +1,13 @@
 /// <reference lib="webworker" />
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
+const BASE = (import.meta as any).env?.BASE_URL || '/';
+const withBase = (p: string) => `${BASE.replace(/\/$/, '/')}${p.replace(/^\//, '')}`;
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icons/icon.svg',
+  BASE,
+  withBase('index.html'),
+  withBase('manifest.webmanifest'),
+  withBase('icons/icon.svg'),
 ];
 
 const STATIC_CACHE = 'static-v1';

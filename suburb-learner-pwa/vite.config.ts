@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  // Set base so built assets work under GitHub Pages repo path
+  base: '/suburb-explorer-web/',
   server: {
     host: true,
     // Allow Cloudflare tunnel hosts to access the dev server
