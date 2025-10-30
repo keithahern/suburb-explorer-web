@@ -28,9 +28,13 @@ const url = new URL(location.href);
 const demo = url.searchParams.get('demo') === '1';
 
 // Start heading and geolocation
+let lastCoord: { lng: number; lat: number } | null = null;
 startHeading((deg) => {
   hud.updateHeading(deg);
   map.updateHeading(deg);
+  if (lastCoord) {
+    worker.postMessage({ type: 'loc-update', coord: lastCoord, heading: deg });
+  }
 });
 
 // Setup worker for suburb detection
@@ -51,5 +55,6 @@ worker.addEventListener('message', (e) => {
 startGeolocationLoop({ demo }, async (pos: PositionUpdate) => {
   hud.updatePosition(pos);
   map.updatePosition(pos);
+   lastCoord = pos.coord;
   worker.postMessage({ type: 'loc-update', coord: pos.coord, heading: pos.heading ?? 0 });
 });

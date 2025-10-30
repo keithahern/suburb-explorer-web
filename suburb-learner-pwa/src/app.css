@@ -79,6 +79,10 @@ body {
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 12px;
 }
+/* Ensure zoom controls are visible and above attribution on mobile */
+#map .maplibregl-ctrl-bottom-left { z-index: 100; bottom: 80px !important; left: 12px !important; }
+#map .maplibregl-ctrl { pointer-events: auto; }
+#map .maplibregl-ctrl-group button { pointer-events: auto; touch-action: manipulation; }
 #map .maplibregl-ctrl-group button {
   background-color: transparent;
   filter: invert(1) brightness(1.1);

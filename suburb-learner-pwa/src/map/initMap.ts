@@ -23,15 +23,27 @@ export function initMap(container: HTMLElement) {
         { id: 'osm', type: 'raster', source: 'osm' }
       ]
     },
-    center: saved?.center ?? [-6.225, 53.333],
-    zoom: saved?.zoom ?? 13,
+    // Default center nudged inland around Sandymount village to avoid water view at high zoom
+    center: saved?.center ?? [-6.2189, 53.3266],
+    zoom: saved?.zoom ?? 12,
   });
+
+  // Disable all zoom interactions (buttons/gestures/keyboard)
+  try {
+    (map as any).scrollZoom?.disable?.();
+    (map as any).boxZoom?.disable?.();
+    (map as any).doubleClickZoom?.disable?.();
+    (map as any).touchZoomRotate?.disable?.();
+    (map as any).keyboard?.disable?.();
+  } catch {}
+
+  // Add explicit zoom controls (persisted via view-state listeners below)
+  try {
+    map.addControl(new maplibregl.NavigationControl({ showZoom: true, showCompass: false }), 'bottom-left');
+  } catch {}
 
   // User line layer
   map.on('load', () => {
-    // Zoom controls (move to bottom-left to avoid HUD overlap)
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
-
     map.addSource('user-ray', { type: 'geojson', data: emptyMutable() as any });
     map.addLayer({ id: 'user-ray-casing', type: 'line', source: 'user-ray', paint: { 'line-color': '#00121f', 'line-width': 8, 'line-opacity': 0.8 } });
     map.addLayer({ id: 'user-ray-inner', type: 'line', source: 'user-ray', paint: { 'line-color': '#00e5ff', 'line-width': 4 } });
@@ -42,6 +54,7 @@ export function initMap(container: HTMLElement) {
 
   let lastPos: PositionUpdate | null = null;
   let lastHeading = 0;
+  let suppressHeading = false;
 
   function updatePosition(pos: PositionUpdate) {
     lastPos = pos;
@@ -54,9 +67,14 @@ export function initMap(container: HTMLElement) {
 
   function updateHeading(heading: number) {
     lastHeading = heading;
+    if (suppressHeading) return; // don't interrupt active zooms
     try {
-      // Rotate map to match device heading (0° = north)
-      (map as any).easeTo?.({ bearing: heading, duration: 300, essential: true });
+      // Rotate map so user's forward direction points up: bearing is negative of heading
+      if (typeof (map as any).setBearing === 'function') {
+        (map as any).setBearing(-heading);
+      } else {
+        (map as any).easeTo?.({ bearing: -heading, duration: 200, essential: true });
+      }
     } catch {}
     updateRay();
   }
@@ -84,6 +102,9 @@ export function initMap(container: HTMLElement) {
   }
 
   map.on('moveend', () => persistViewState(map));
+  map.on('zoomend', () => persistViewState(map));
+  map.on('zoomstart', () => { suppressHeading = true; });
+  map.on('zoomend', () => { suppressHeading = false; });
 
   return { updatePosition, updateHeading, setUserPosition };
 }
@@ -92,9 +113,11 @@ function emptyMutable() {
   return { type: 'FeatureCollection', features: [] } as { type: 'FeatureCollection'; features: any[] };
 }
 
+const VIEW_STATE_KEY = 'viewState_v3';
+
 function loadViewState(): { center: [number, number]; zoom: number } | null {
   try {
-    const raw = localStorage.getItem('viewState');
+    const raw = localStorage.getItem(VIEW_STATE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch { return null; }
@@ -105,8 +128,9 @@ export function persistViewState(map: maplibregl.Map) {
   try {
     const c = map.getCenter();
     const z = map.getZoom();
-    localStorage.setItem('viewState', JSON.stringify({ center: [c.lng, c.lat], zoom: z }));
+    localStorage.setItem(VIEW_STATE_KEY, JSON.stringify({ center: [c.lng, c.lat], zoom: z }));
   } catch {}
 }
 
+// Zoom controls enabled
 

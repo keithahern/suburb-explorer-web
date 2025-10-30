@@ -1,11 +1,13 @@
+import { requestHeadingPermission } from '../heading';
+
 export function createToggles(container: HTMLElement) {
   container.className = 'toggles';
   container.innerHTML = `
-    <button id="btn-wake">Wake Lock: Off</button>
-    <button id="btn-install">Install</button>
+    <button title="Keep screen on" id="btn-wake">Wake</button>
+    <button title="Enable compass" id="btn-compass">Calibrate</button>
   `;
   const btnWake = container.querySelector<HTMLButtonElement>('#btn-wake')!;
-  const btnInstall = container.querySelector<HTMLButtonElement>('#btn-install')!;
+  const btnCompass = container.querySelector<HTMLButtonElement>('#btn-compass')!;
 
   // Wake Lock
   let wake: any = null;
@@ -25,24 +27,16 @@ export function createToggles(container: HTMLElement) {
       updateLabel();
     }
   }
-  function updateLabel() {
-    btnWake.textContent = `Wake Lock: ${wake ? 'On' : 'Off'}`;
-  }
+  function updateLabel() { btnWake.ariaPressed = wake ? 'true' : 'false'; }
   btnWake.addEventListener('click', toggleWake);
   updateLabel();
 
-  // Install
-  let deferred: any = null;
-  window.addEventListener('beforeinstallprompt', (e: any) => {
-    e.preventDefault();
-    deferred = e;
-  });
-  btnInstall.addEventListener('click', async () => {
-    if (!deferred) return alert('Already installed or not installable.');
-    deferred.prompt();
-    await deferred.userChoice;
-    deferred = null;
-  });
+  // Compass permission/calibration button
+  async function enableCompass() {
+    const ok = await requestHeadingPermission();
+    if (!ok) alert('Compass permission was not granted. Please enable Motion & Orientation Access in Settings > Safari.');
+  }
+  btnCompass.addEventListener('click', enableCompass);
 }
 
 

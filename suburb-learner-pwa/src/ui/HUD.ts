@@ -58,7 +58,10 @@ export function createHUD(container: HTMLElement) {
   }
 
   function setNextDirs(next: {top:{name:string|null;distM:number|null};bottom:{name:string|null;distM:number|null};left:{name:string|null;distM:number|null};right:{name:string|null;distM:number|null}}) {
-    const fmt = (n: string | null, d: number | null) => n && d != null ? `${n} · ${(d/1000).toFixed(1)} km` : '';
+    const fmt = (n: string | null, d: number | null) => {
+      if (n && d != null) return `${n} · ${(d/1000).toFixed(1)} km`;
+      return 'N/A';
+    };
     elTop.textContent = fmt(next.top.name, next.top.distM);
     elBottom.textContent = fmt(next.bottom.name, next.bottom.distM);
     elLeft.textContent = fmt(next.left.name, next.left.distM);
