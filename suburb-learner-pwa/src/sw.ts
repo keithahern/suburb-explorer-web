@@ -10,8 +10,8 @@ const APP_SHELL = [
   withBase('icons/icon.svg'),
 ];
 
-const STATIC_CACHE = 'static-v1';
-const RUNTIME_CACHE = 'runtime-v1';
+const STATIC_CACHE = 'static-v2';
+const RUNTIME_CACHE = 'runtime-v2';
 
 sw.addEventListener('install', (e) => {
   e.waitUntil(
