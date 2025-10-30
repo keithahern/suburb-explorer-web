@@ -1,4 +1,5 @@
 import { formatHeading } from '../heading';
+import { getHeadingTrimDeg } from '../settings';
 import type { PositionUpdate } from '../types';
 
 export function createHUD(container: HTMLElement) {
@@ -26,9 +27,10 @@ export function createHUD(container: HTMLElement) {
   const elRight = container.querySelector<HTMLDivElement>('#dir-right')!;
 
   function updateHeading(h: number) {
-    elDeg.textContent = formatHeading(h);
+    const adjusted = (h + getHeadingTrimDeg() + 360) % 360;
+    elDeg.textContent = formatHeading(adjusted);
     const dial = elCompass.querySelector<HTMLDivElement>('.dial')!;
-    dial.style.transform = `rotate(${Math.round(h)}deg)`;
+    dial.style.transform = `rotate(${Math.round(adjusted)}deg)`;
   }
 
   function updatePosition(_pos: PositionUpdate) {

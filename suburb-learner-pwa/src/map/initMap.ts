@@ -3,6 +3,7 @@ import type { LngLatLike } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { computeRayToViewportEdge } from './roadRay';
 import type { PositionUpdate } from '../types';
+import { getHeadingTrimDeg } from '../settings';
 
 export function initMap(container: HTMLElement) {
   const saved = loadViewState();
@@ -70,10 +71,11 @@ export function initMap(container: HTMLElement) {
     if (suppressHeading) return; // don't interrupt active zooms
     try {
       // Rotate map so user's forward direction points up: bearing is negative of heading
+      const adjusted = heading + getHeadingTrimDeg();
       if (typeof (map as any).setBearing === 'function') {
-        (map as any).setBearing(-heading);
+        (map as any).setBearing(-adjusted);
       } else {
-        (map as any).easeTo?.({ bearing: -heading, duration: 200, essential: true });
+        (map as any).easeTo?.({ bearing: -adjusted, duration: 200, essential: true });
       }
     } catch {}
     updateRay();
@@ -105,6 +107,11 @@ export function initMap(container: HTMLElement) {
   map.on('zoomend', () => persistViewState(map));
   map.on('zoomstart', () => { suppressHeading = true; });
   map.on('zoomend', () => { suppressHeading = false; });
+
+  // If trim changes, reapply current heading to update bearing immediately
+  window.addEventListener('heading-trim-changed', () => {
+    updateHeading(lastHeading);
+  });
 
   return { updatePosition, updateHeading, setUserPosition };
 }

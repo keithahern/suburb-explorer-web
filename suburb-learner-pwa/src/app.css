@@ -80,7 +80,7 @@ body {
   border-radius: 12px;
 }
 /* Ensure zoom controls are visible and above attribution on mobile */
-#map .maplibregl-ctrl-bottom-left { z-index: 100; bottom: 80px !important; left: 12px !important; }
+#map .maplibregl-ctrl-bottom-left { z-index: 100; bottom: 140px !important; left: 12px !important; }
 #map .maplibregl-ctrl { pointer-events: auto; }
 #map .maplibregl-ctrl-group button { pointer-events: auto; touch-action: manipulation; }
 #map .maplibregl-ctrl-group button {
@@ -121,13 +121,42 @@ body {
 
 .toggles {
   position: absolute;
-  bottom: 64px; /* sit above OSM/MapLibre attribution */
-  right: 16px;
+  top: 96px;     /* sit just below the compass */
+  right: 16px;   /* same side as compass */
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+  flex-direction: row-reverse; /* gear on the outside/right */
 }
 
-.toggles button {
+.toggles .gear {
+  width: 56px;
+  height: 56px;
+  background: rgba(0,0,0,0.35);
+  color: var(--fg);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.toggles .toggles-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(calc(100% + 12px)); /* hidden to the right of gear */
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+.toggles.open .toggles-panel {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toggles .toggles-panel button {
   width: 56px;
   height: 56px;
   background: rgba(0,0,0,0.35);
@@ -136,6 +165,20 @@ body {
   border-radius: 12px;
   padding: 0;
 }
+
+.toggles .trim {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 220px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.toggles .trim label { font-size: 12px; color: var(--fg); }
+.toggles .trim input { flex: 1; }
+.toggles .trim #trim-val { width: 46px; text-align: right; font-size: 12px; color: var(--fg); }
 
 /* Larger zoom controls for bike use */
 #map .maplibregl-ctrl-bottom-left .maplibregl-ctrl-group button {
