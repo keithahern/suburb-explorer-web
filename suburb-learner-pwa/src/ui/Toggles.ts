@@ -10,7 +10,6 @@ export function createToggles(container: HTMLElement) {
         <div class="title">Settings</div>
         <button id="btn-close" class="close" title="Close">✕</button>
       </div>
-      <button title="Keep screen on" id="btn-wake">Wake</button>
       <button title="Enable compass" id="btn-compass">Calibrate</button>
       <div class="trim">
         <label for="trim">Trim</label>
@@ -27,7 +26,6 @@ export function createToggles(container: HTMLElement) {
     </div>
   `;
   const btnGear = container.querySelector<HTMLButtonElement>('#btn-gear')!;
-  const btnWake = container.querySelector<HTMLButtonElement>('#btn-wake')!;
   const btnCompass = container.querySelector<HTMLButtonElement>('#btn-compass')!;
   const btnClose = container.querySelector<HTMLButtonElement>('#btn-close')!;
   const trim = container.querySelector<HTMLInputElement>('#trim')!;
@@ -37,27 +35,43 @@ export function createToggles(container: HTMLElement) {
   const keyClear = container.querySelector<HTMLButtonElement>('#geokey-clear')!;
   const keyStatus = container.querySelector<HTMLSpanElement>('#geokey-status')!;
 
-  // Wake Lock
+  // Wake Lock (enabled by default, no UI button)
   let wake: any = null;
-  async function toggleWake() {
+  const wakeDesired = true;
+
+  async function requestWake() {
     try {
       if (!('wakeLock' in navigator)) throw new Error('unsupported');
+      if (wake) return;
+      wake = await (navigator as any).wakeLock.request('screen');
       if (wake) {
-        wake.release();
-        wake = null;
-      } else {
-        wake = await (navigator as any).wakeLock.request('screen');
-        if (wake) wake.addEventListener('release', () => updateLabel());
+        wake.addEventListener('release', () => {
+          if (wakeDesired && document.visibilityState === 'visible') {
+            requestWake().catch(() => {});
+          }
+        });
       }
-    } catch {
-      alert('Screen Wake Lock not supported on this device.');
-    } finally {
-      updateLabel();
+    } catch (err) {
+      console.warn('Wake Lock request failed:', err);
     }
   }
-  function updateLabel() { btnWake.ariaPressed = wake ? 'true' : 'false'; }
-  btnWake.addEventListener('click', toggleWake);
-  updateLabel();
+
+  // Try on init
+  requestWake().catch(() => {});
+
+  // Retry when returning to foreground
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && wakeDesired && !wake) {
+      requestWake().catch(() => {});
+    }
+  });
+
+  // As a fallback for iOS requiring a user gesture, attempt on first tap
+  const onFirstPointer = () => {
+    if (wakeDesired && !wake) requestWake().catch(() => {});
+    window.removeEventListener('pointerdown', onFirstPointer);
+  };
+  window.addEventListener('pointerdown', onFirstPointer, { once: true });
 
   // Compass permission/calibration button
   async function enableCompass() {
