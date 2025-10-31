@@ -49,6 +49,33 @@ After installation you can stop any local dev server. The app runs from the cach
 - Big zoom controls (bottom-left), remembered between sessions
 - Simple HUD with suburb labels (demo)
 
+## Dynamic suburb names (online fallback)
+The app can fetch suburb/neighbourhood names anywhere in the world using LocationIQ when local polygons don't cover the area.
+
+Setup:
+
+1. Create a free LocationIQ account and get an API key.
+2. Option A — create a `.env` in `suburb-learner-pwa/`:
+
+```
+VITE_GEOCODER_PROVIDER=locationiq
+VITE_GEOCODER_KEY=YOUR_LOCATIONIQ_KEY
+```
+
+Notes:
+- Requests are debounced and cached per ~150 m grid cell to minimize usage.
+- If no name is returned, the HUD shows `—` until a valid response is received.
+
+### Cadence policy (optimized for cycling)
+- Current suburb lookup: when moved ≥300 m since last query or ≥90 s elapsed (whichever later). One lookup on app start.
+- Directional labels: probe ~1.2 km ahead; refresh when moved ≥500 m, heading changed ≥90°, or ≥60 s elapsed.
+- Stationary detection: if speed < 1 m/s for 20 s, skip directional probes.
+- Requests are globally throttled to ~1 req/sec and paused for 60 s after any 429.
+
+Option B — enter the key in the app:
+
+- Open the gear panel, paste the key into “Geocoder key,” then Save. It’s stored locally in the browser and overrides the build-time key.
+
 
 ## License
 MIT

@@ -32,7 +32,8 @@ ctx.addEventListener('message', (e) => {
   if (msg.type === 'loc-update') {
     const { coord, heading } = msg as { coord: {lng:number;lat:number}; heading?: number };
     const hereSuburb = getSuburbAt(coord.lng, coord.lat);
-    if (hereSuburb) lastSuburb = hereSuburb;
+    // Update even when null to avoid stale labels persisting outside covered areas
+    lastSuburb = hereSuburb;
 
     const h = (typeof heading === 'number' && !Number.isNaN(heading)) ? heading : 0;
     const norm = (a: number) => (a % 360 + 360) % 360;
@@ -70,18 +71,6 @@ function getSuburbAt(lng: number, lat: number): string | null {
     const feat = features[c.idx];
     if (booleanPointInPolygon([lng, lat], feat as any)) return feat.properties.name;
   }
-  // Fallback: snap to nearest suburb within 200 m
-  let bestName: string | null = null;
-  let bestDist = Infinity;
-  for (const c of candidates.length ? candidates : tree.all()) {
-    const feat = features[c.idx];
-    const dist = distanceToBBoxMeters({ lng, lat }, feat.bbox ?? computeBBox(feat));
-    if (dist < bestDist) {
-      bestDist = dist;
-      bestName = feat.properties.name;
-    }
-  }
-  if (bestDist <= 200) return bestName;
   return null;
 }
 

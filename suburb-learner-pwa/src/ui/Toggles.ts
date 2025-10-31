@@ -1,11 +1,15 @@
 import { requestHeadingPermission } from '../heading';
-import { getHeadingTrimDeg, setHeadingTrimDeg } from '../settings';
+import { getHeadingTrimDeg, setHeadingTrimDeg, getGeocoderApiKey, setGeocoderApiKey } from '../settings';
 
 export function createToggles(container: HTMLElement) {
   container.className = 'toggles';
   container.innerHTML = `
     <button id="btn-gear" class="gear" title="Settings">⚙</button>
     <div class="toggles-panel">
+      <div class="panel-header">
+        <div class="title">Settings</div>
+        <button id="btn-close" class="close" title="Close">✕</button>
+      </div>
       <button title="Keep screen on" id="btn-wake">Wake</button>
       <button title="Enable compass" id="btn-compass">Calibrate</button>
       <div class="trim">
@@ -13,13 +17,25 @@ export function createToggles(container: HTMLElement) {
         <input id="trim" type="range" min="-90" max="90" step="1" />
         <span id="trim-val"></span>
       </div>
+      <div class="geo-key">
+        <label for="geokey">Geocoder key</label>
+        <input id="geokey" type="password" placeholder="Enter API key" />
+        <button id="geokey-save" title="Save key">Save</button>
+        <button id="geokey-clear" title="Clear key">Clear</button>
+        <span id="geokey-status"></span>
+      </div>
     </div>
   `;
   const btnGear = container.querySelector<HTMLButtonElement>('#btn-gear')!;
   const btnWake = container.querySelector<HTMLButtonElement>('#btn-wake')!;
   const btnCompass = container.querySelector<HTMLButtonElement>('#btn-compass')!;
+  const btnClose = container.querySelector<HTMLButtonElement>('#btn-close')!;
   const trim = container.querySelector<HTMLInputElement>('#trim')!;
   const trimVal = container.querySelector<HTMLSpanElement>('#trim-val')!;
+  const keyInput = container.querySelector<HTMLInputElement>('#geokey')!;
+  const keySave = container.querySelector<HTMLButtonElement>('#geokey-save')!;
+  const keyClear = container.querySelector<HTMLButtonElement>('#geokey-clear')!;
+  const keyStatus = container.querySelector<HTMLSpanElement>('#geokey-status')!;
 
   // Wake Lock
   let wake: any = null;
@@ -63,11 +79,36 @@ export function createToggles(container: HTMLElement) {
   });
   renderTrim();
 
+  // Geocoder API key controls
+  function renderKey() {
+    const k = getGeocoderApiKey();
+    keyInput.value = k ?? '';
+    keyInput.placeholder = 'Enter API key';
+    keyStatus.textContent = k ? 'Saved locally' : '';
+  }
+  keySave.addEventListener('click', () => {
+    const v = keyInput.value.trim();
+    setGeocoderApiKey(v || null);
+    keyStatus.textContent = v ? 'Saved locally' : 'Cleared';
+  });
+  keyClear.addEventListener('click', () => {
+    setGeocoderApiKey(null);
+    keyInput.value = '';
+    keyStatus.textContent = 'Cleared';
+  });
+  renderKey();
+
   // Gear toggle
   function togglePanel() {
     container.classList.toggle('open');
   }
   btnGear.addEventListener('click', togglePanel);
+  btnClose.addEventListener('click', togglePanel);
+
+  // Close on Escape key
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && container.classList.contains('open')) togglePanel();
+  });
 }
 
 
