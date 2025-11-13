@@ -7,8 +7,6 @@ import { startHeading } from './heading';
 import { registerSW } from './sw-register';
 import type { PositionUpdate } from './types';
 import { createSuburbResolver } from './geo/suburbProvider';
-// Ensure suburbs data resolves in dev and build
-import suburbsUrl from './data/dublin_suburbs.geojson?url';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
@@ -41,45 +39,15 @@ let stationarySince: number | null = null;
 startHeading((deg) => {
   hud.updateHeading(deg);
   map.updateHeading(deg);
-  if (lastCoord) {
-    worker.postMessage({ type: 'loc-update', coord: lastCoord, heading: deg });
-  }
   lastHeadingDeg = deg;
   maybeUpdateDirections();
   // No suburb query on heading-only changes
 });
 
-// Setup worker for suburb detection
-const worker = new Worker(new URL('./geo-worker.ts', import.meta.url), { type: 'module' });
-fetch(suburbsUrl)
-  .then((r) => r.json())
-  .then((gj) => worker.postMessage({ type: 'build-index', polygons: gj.features }));
-
-worker.addEventListener('message', (e) => {
-  const m = e.data;
-  if (m.type === 'loc-result') {
-    if (m.suburbName) hud.setSuburb(m.suburbName);
-    hud.setApproach(m.nextName, m.nextDistanceM);
-    if (m.nextDirs) hud.setNextDirs(m.nextDirs);
-    // Fallback: if no suburb from local polygons, resolve via online provider
-    if ((!m.suburbName || m.suburbName === null) && lastCoord) {
-      const queryAt = lastCoord; // snapshot to compare drift
-      suburbResolver.resolve(queryAt).then((name) => {
-        if (!name) return;
-        // Only apply if user hasn't moved far (>200 m) since the query
-        if (lastCoord && distanceMeters(lastCoord, queryAt) <= 200) {
-          hud.setSuburb(name);
-        }
-      });
-    }
-  }
-});
-
 startGeolocationLoop({ demo }, async (pos: PositionUpdate) => {
   hud.updatePosition(pos);
   map.updatePosition(pos);
-   lastCoord = pos.coord;
-  worker.postMessage({ type: 'loc-update', coord: pos.coord, heading: pos.heading ?? 0 });
+  lastCoord = pos.coord;
   if (typeof pos.heading === 'number') lastHeadingDeg = pos.heading;
   // Stationary detection (speed < 1 m/s sustained)
   const now = Date.now();
